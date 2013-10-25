@@ -3,7 +3,7 @@
   {description, "Erlang utilities"},
   {vsn, "1"},
   {registered, []},
-  {modules,[vutil,vutil_app]},
+  {modules,[vutil]},
   {applications, [
                   kernel,
                   stdlib
