@@ -4,7 +4,8 @@
          pmap/2,
          floor/1,
          ceiling/1,
-         significant_round/2
+         significant_round/2,
+         any_to_binary/1
     ]).
 
 calculate_delay_mcs({Mega, Sec, Micro} = _Past, {Mega1, Sec1, Micro1} = _Future) ->
@@ -37,3 +38,14 @@ significant_round(Number, Digits) ->
     M = math:pow(10, P),
     S = round(Number * M),
     S/M.
+
+any_to_binary(X) when is_binary(X) ->
+    X;
+any_to_binary(X) when is_list(X) ->
+    list_to_binary(X);
+any_to_binary(X) is_integer(X) ->
+    list_to_binary(integer_to_list(X));
+any_to_binary(X) when is_float(X) ->
+    list_to_binary(float_to_list(X));
+any_to_binary(X) when is_atom(X) ->
+    list_to_binary(atom_to_list(X)).
