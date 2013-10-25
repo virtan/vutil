@@ -48,4 +48,6 @@ any_to_binary(X) when is_integer(X) ->
 any_to_binary(X) when is_float(X) ->
     list_to_binary(float_to_list(X));
 any_to_binary(X) when is_atom(X) ->
-    list_to_binary(atom_to_list(X)).
+    list_to_binary(atom_to_list(X));
+any_to_binary(X) ->
+    list_to_binary(io_lib:format("~p", [X])).
