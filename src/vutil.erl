@@ -42,7 +42,11 @@ significant_round(Number, Digits) ->
 any_to_binary(X) when is_binary(X) ->
     X;
 any_to_binary(X) when is_list(X) ->
-    list_to_binary(X);
+    try
+        list_to_binary(X)
+    catch
+        _:_ -> list_to_binary(io_lib:format("~p", [X]))
+    end;
 any_to_binary(X) when is_integer(X) ->
     list_to_binary(integer_to_list(X));
 any_to_binary(X) when is_float(X) ->
