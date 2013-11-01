@@ -6,7 +6,8 @@
          ceiling/1,
          significant_round/2,
          any_to_binary/1,
-         join/2
+         join/2,
+         join/4
     ]).
 
 calculate_delay_mcs({Mega, Sec, Micro} = _Past, {Mega1, Sec1, Micro1} = _Future) ->
@@ -61,5 +62,12 @@ join(ListOfSomething, Separator) when is_list(ListOfSomething) ->
     lists:reverse(
       lists:foldl(fun(El, []) -> [El];
                      (El, List) -> [El, Separator | List]
+                  end, [], ListOfSomething)
+     ).
+
+join(ListOfSomething, Separator, Prefix, Suffix) when is_list(ListOfSomething) ->
+    lists:reverse(
+      lists:foldl(fun(El, []) -> [Suffix, El, Prefix];
+                     (El, List) -> [Suffix, El, Prefix, Separator | List]
                   end, [], ListOfSomething)
      ).
