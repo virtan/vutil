@@ -5,7 +5,8 @@
          floor/1,
          ceiling/1,
          significant_round/2,
-         any_to_binary/1
+         any_to_binary/1,
+         join/2
     ]).
 
 calculate_delay_mcs({Mega, Sec, Micro} = _Past, {Mega1, Sec1, Micro1} = _Future) ->
@@ -55,3 +56,10 @@ any_to_binary(X) when is_atom(X) ->
     list_to_binary(atom_to_list(X));
 any_to_binary(X) ->
     list_to_binary(io_lib:format("~p", [X])).
+
+join(ListOfSomething, Separator) when is_list(ListOfSomething) ->
+    lists:reverse(
+      lists:foldl(fun(El, []) -> [El];
+                     (El, List) -> [El, Separator | List]
+                  end, [], ListOfSomething)
+     ).
