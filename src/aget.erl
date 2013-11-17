@@ -13,7 +13,8 @@
     handle_cast/2,
     lookup/2,
     delete/2,
-    insert/2
+    insert/2,
+    get/3
 ]).
 
 -behaviour(gen_server).
@@ -92,3 +93,13 @@ delete(Name, Key) ->
 
 insert(Name, ObjectOrObjects) ->
     gen_server:call(Name, {insert, ObjectOrObjects}).
+
+get(Name, Key, CreateF) ->
+    case lookup(Name, Key) of
+        [] ->
+            Value = CreateF(),
+            insert(Name, {Key, Value}),
+            Value;
+        [{Key, Value} | _] ->
+            Value
+    end.
