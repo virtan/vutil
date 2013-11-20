@@ -31,7 +31,7 @@ decode(Bin, Doc) when is_binary(Bin) andalso (Doc =:= html orelse Doc =:= xml) -
       ]).
 
 nif_loader() ->
-    SoName = case code:priv_dir(?MODULE) of
+    SoName = case code:priv_dir(vutil) of
                  {error, bad_name} ->
                      case filelib:is_dir(filename:join(["..", priv])) of
                          true ->
