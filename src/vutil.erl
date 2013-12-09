@@ -7,8 +7,11 @@
          significant_round/2,
          any_to_binary/1,
          join/2,
-         join/4
+         join/4,
+         binstrip/2
     ]).
+
+-compile({parse_transform, ct_expand}).
 
 calculate_delay_mcs({Mega, Sec, Micro} = _Past, {Mega1, Sec1, Micro1} = _Future) ->
     ((Mega1 - Mega) * 1000000000000) + ((Sec1 - Sec) * 1000000) + Micro1 - Micro.
@@ -71,3 +74,20 @@ join(ListOfSomething, Separator, Prefix, Suffix) when is_list(ListOfSomething) -
                      (El, List) -> [Suffix, El, Prefix, Separator | List]
                   end, [], ListOfSomething)
      ).
+
+% strips '\n', '\t', '\r', ' '
+% from Direction (left | right | both) sides
+binstrip(Binary, Direction) when is_binary(Binary) andalso
+                                 (Direction == left orelse Direction == right orelse Direction == both) ->
+    Re = case Direction of
+             left -> ct_expand:term(element(2, re:compile("^\\s+")));
+             right -> ct_expand:term(element(2, re:compile("\\s+$")));
+             both -> ct_expand:term(element(2, re:compile("^\\s+|\\s+$")))
+         end,
+    case re:run(Binary, Re, [global]) of
+        nomatch -> Binary;
+        {match, [[{0, L1}], [{O2, _}]]} -> binary:part(Binary, L1, O2 - L1);
+        {match, [[{0, L1}]]} -> binary:part(Binary, L1, size(Binary) - L1);
+        {match, [[{O2, _}]]} -> binary:part(Binary, 0, O2)
+    end.
+
