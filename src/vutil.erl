@@ -8,7 +8,8 @@
          any_to_binary/1,
          join/2,
          join/4,
-         binstrip/2
+         binstrip/2,
+         binstrip_light/2
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -91,3 +92,9 @@ binstrip(Binary, Direction) when is_binary(Binary) andalso
         {match, [[{O2, _}]]} -> binary:part(Binary, 0, O2)
     end.
 
+% works faster than binstrip(Binary, left) when size(Binary) <= 50
+binstrip_light(<<$ , Rest/binary>>, left) -> binstrip_light(Rest, left);
+binstrip_light(<<$\t, Rest/binary>>, left) -> binstrip_light(Rest, left);
+binstrip_light(<<$\n, Rest/binary>>, left) -> binstrip_light(Rest, left);
+binstrip_light(<<$\r, Rest/binary>>, left) -> binstrip_light(Rest, left);
+binstrip_light(Binary, left) when is_binary(Binary) -> Binary.
