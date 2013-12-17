@@ -19,7 +19,7 @@ calculate_delay_mcs({Mega, Sec, Micro} = _Past, {Mega1, Sec1, Micro1} = _Future)
 
 pmap(F, L) ->
     Parent = self(),
-    [receive {Pid, Result} -> Result end || Pid <- [spawn(fun() -> Parent ! {self(), F(X)} end) || X <- L]].
+    [receive {Pid, Result} -> Result end || Pid <- [spawn_link(fun() -> Parent ! {self(), F(X)} end) || X <- L]].
 
 floor(X) ->
     T = erlang:trunc(X),
