@@ -14,6 +14,7 @@
     lookup/2,
     delete/2,
     insert/2,
+    insert_new/2,
     get/3
 ]).
 
@@ -60,8 +61,11 @@ handle_call({delete, Key}, _From, State = #state{cur_map = CurMap, prev_map = Pr
     ets:delete(PrevMap, Key),
     {reply, true, State};
 handle_call({insert, ObjectOrObjects}, _From, State = #state{cur_map = CurMap}) ->
-    ets:insert(CurMap, ObjectOrObjects),
-    {reply, true, State};
+    Res = ets:insert(CurMap, ObjectOrObjects),
+    {reply, Res, State};
+handle_call({insert_new, ObjectOrObjects}, _From, State = #state{cur_map = CurMap}) ->
+    Res = ets:insert_new(CurMap, ObjectOrObjects),
+    {reply, Res, State};
 handle_call(stop, _From, State) ->
     {stop, normal, stopped, State};
 handle_call(_, _From, State) ->
@@ -93,6 +97,9 @@ delete(Name, Key) ->
 
 insert(Name, ObjectOrObjects) ->
     gen_server:call(Name, {insert, ObjectOrObjects}).
+
+insert_new(Name, ObjectOrObjects) ->
+    gen_server:call(Name, {insert_new, ObjectOrObjects}).
 
 get(Name, Key, CreateF) ->
     case lookup(Name, Key) of
