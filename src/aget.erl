@@ -21,27 +21,42 @@
 
 -behaviour(gen_server).
 
--record(state, {cur_map, prev_map, timer}).
+%%% API %%%
 
+-type aget_name() :: atom().
+-type aget_opt() :: {lifetime, pos_integer()}.
+-type aget_opts() :: [ aget_opt() ].
 
+-spec start( Name :: aget_name() ) -> {ok, pid()}.
 start(Name) ->
     start(Name, []).
 
+-spec start( Name :: aget_name(), Options :: aget_opts() ) -> {ok, pid()}.
 start(Name, Options) ->
     gen_server:start({local, Name}, ?MODULE, Options, []).
 
+-spec start_link( Name :: aget_name() ) -> {ok, pid()}.
 start_link(Name) ->
     start_link(Name, []).
 
+-spec start_link( Name :: aget_name(), Options :: aget_opts() ) -> {ok, pid()}.
 start_link(Name, Options) ->
     gen_server:start_link({local, Name}, ?MODULE, Options, []).
 
+-spec stop(Name :: aget_name()) -> stopped.
 stop(Name) ->
     gen_server:call(Name, stop).
 
-set_interval( Name, NewInterval ) when is_atom( Name ) andalso is_integer( NewInterval ) andalso NewInterval > 1200000 ->
+-spec set_interval( Name :: aget_name(), NewInterval :: pos_integer() ) -> ok.
+set_interval( Name, NewInterval )
+    when is_atom( Name )
+    andalso is_integer( NewInterval )
+    andalso NewInterval > 0
+->
     gen_server:call(Name, {set_interval, NewInterval}).
 
+%%% gen_server %%%
+-record(state, {cur_map, prev_map, timer}).
 
 init(Options) ->
     {OurOptions, EtsOptions} = proplists:split(Options, [lifetime]),
@@ -50,7 +65,7 @@ init(Options) ->
     CurMap = ets:new(unnamed, EtsOptions1),
     PrevMap = ets:new(unnamed, EtsOptions1),
     {ok, #state{cur_map = CurMap, prev_map = PrevMap, timer = Timer}}.
-handle_call({set_interval, NewInterval}, _From, State = #state{ timer = OldTimer }) when is_integer( NewInterval ) andalso NewInterval > 1200000 ->
+handle_call({set_interval, NewInterval}, _From, State = #state{ timer = OldTimer }) when is_integer( NewInterval ) andalso NewInterval > 0 ->
     error_logger:info_report([?MODULE, handle_call, {set_interval, NewInterval}]),
     timer:cancel( OldTimer ),
     {ok, NewTimer} = timer:send_interval( NewInterval, lifecycle ),
@@ -79,16 +94,20 @@ handle_call({insert_new, ObjectOrObjects}, _From, State = #state{cur_map = CurMa
     {reply, Res, State};
 handle_call(stop, _From, State) ->
     {stop, normal, stopped, State};
-handle_call(_, _From, State) ->
-    {reply, undefined, State}.
+handle_call(UnexpectedCall, _From, State) ->
+    error_logger:warning_report([?MODULE, handle_call, {unexpected_call, UnexpectedCall}]),
+    {reply, badarg, State}.
 
-handle_cast(_, State) ->
+handle_cast(UnexpectedCast, State) ->
+    error_logger:warning_report([?MODULE, handle_cast, {unexpected_cast, UnexpectedCast}]),
     {noreply, State}.
 
 handle_info(lifecycle, State = #state{cur_map = CurMap, prev_map = PrevMap}) ->
     ets:delete_all_objects(PrevMap),
     {noreply, State#state{cur_map = PrevMap, prev_map = CurMap}};
-handle_info(_, State) ->
+
+handle_info(UnexpectedInfo, State) ->
+    error_logger:warning_report([?MODULE, handle_info, {unexpected_info, UnexpectedInfo}]),
     {noreply, State}.
 
 code_change(_, State, _) ->
