@@ -15,12 +15,14 @@
     delete/2,
     insert/2,
     insert_new/2,
-    get/3
+    get/3,
+    set_interval/2
 ]).
 
 -behaviour(gen_server).
 
 -record(state, {cur_map, prev_map, timer}).
+
 
 start(Name) ->
     start(Name, []).
@@ -37,6 +39,10 @@ start_link(Name, Options) ->
 stop(Name) ->
     gen_server:call(Name, stop).
 
+set_interval( Name, NewInterval ) when is_atom( Name ) andalso is_integer( NewInterval ) andalso NewInterval > 1200000 ->
+    gen_server:call(Name, {set_interval, NewInterval}).
+
+
 init(Options) ->
     {OurOptions, EtsOptions} = proplists:split(Options, [lifetime]),
     {ok, Timer} = timer:send_interval(proplists:get_value(lifetime, lists:flatten(OurOptions), 3600000), lifecycle),
@@ -44,6 +50,11 @@ init(Options) ->
     CurMap = ets:new(unnamed, EtsOptions1),
     PrevMap = ets:new(unnamed, EtsOptions1),
     {ok, #state{cur_map = CurMap, prev_map = PrevMap, timer = Timer}}.
+handle_call({set_interval, NewInterval}, _From, State = #state{ timer = OldTimer }) when is_integer( NewInterval ) andalso NewInterval > 1200000 ->
+    error_logger:info_report([?MODULE, handle_call, {set_interval, NewInterval}]),
+    timer:cancel( OldTimer ),
+    {ok, NewTimer} = timer:send_interval( NewInterval, lifecycle ),
+    {reply, ok, State #state{ timer = NewTimer }};
 
 handle_call({lookup, Key}, _From, State = #state{cur_map = CurMap, prev_map = PrevMap}) ->
     case ets:lookup(CurMap, Key) of
