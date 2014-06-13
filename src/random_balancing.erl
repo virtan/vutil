@@ -7,7 +7,7 @@
          start_link/3,
          start_link/4,
          child_spec/0,
-         pick/1,
+         pick_worker/1,
          not_abuse/2
         ]).
 
@@ -64,8 +64,8 @@ init({WorkerModule, NumberOfWorkers, Options}) ->
        proplists:get_value(maxt, Options, 1000)},
           Workers}}.
 
--spec pick(pid() | atom()) -> {ok, pid()} | {error, no_active_workers}.
-pick(Supervisor) ->
+-spec pick_worker(pid() | atom()) -> {ok, pid()} | {error, no_active_workers}.
+pick_worker(Supervisor) ->
     Children = supervisor:which_children(Supervisor),
     ActiveChildren = [Pid || {_, Pid, _, _} <- Children, is_pid(Pid)],
     pick_random_worker(ActiveChildren).
@@ -77,6 +77,8 @@ pick_random_worker(Workers) when is_list(Workers) ->
     RandomWorker = erlang:phash2(make_ref(), NumWorkers) + 1,
     {ok, lists:nth(RandomWorker, Workers)}.
 
+-spec not_abuse(integer(), {ok, pid()} | pid() | {error, term()}) ->
+    {ok, pid()} | {error, worker_busy} | {error, worker_unavailable} | {error, term()}.
 not_abuse(_, {error, _} = Error) -> Error;
 not_abuse(MaxQueueLength, {ok, Pid}) when is_integer(MaxQueueLength) andalso
                                           is_pid(Pid) ->
