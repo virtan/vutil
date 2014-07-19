@@ -119,13 +119,13 @@ unify_proplists_keys(PList, binary) ->
 unify_proplists_keys(PList, list) ->
     lists:map(fun({Key, Value}) -> {any_to_list(Key), Value} end, PList).
 
-memo_body(Arg, OriginalF, #{Arg := Value} = Cache) ->
-    {Value, OriginalF, fun(Arg) -> memo_body(Arg, OriginalF, Cache) end};
-memo_body(Arg, OriginalF, Cache) ->
-    NewValue = OriginalF(Arg),
-    {NewValue, OriginalF, maps:put(Arg, NewValue, Cache)}.
-
-memo(F) -> fun(Arg) -> memo_body(Arg, F, #{}) end.
+%memo_body(Arg, OriginalF, #{Arg := Value} = Cache) ->
+%    {Value, OriginalF, fun(Arg) -> memo_body(Arg, OriginalF, Cache) end};
+%memo_body(Arg, OriginalF, Cache) ->
+%    NewValue = OriginalF(Arg),
+%    {NewValue, OriginalF, maps:put(Arg, NewValue, Cache)}.
+%
+%memo(F) -> fun(Arg) -> memo_body(Arg, F, #{}) end.
 %
 %memo(F) ->
 %    Cache = ets:new(unnamed, [public, {read_concurrency, true}, {write_concurrency, true}]),
