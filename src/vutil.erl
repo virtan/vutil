@@ -6,10 +6,12 @@
          ceiling/1,
          significant_round/2,
          any_to_binary/1,
+         any_to_list/1,
          join/2,
          join/4,
          binstrip/2,
-         binstrip_light/2
+         binstrip_light/2,
+         unify_proplists_keys/2
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -62,6 +64,19 @@ any_to_binary(X) when is_atom(X) ->
 any_to_binary(X) ->
     list_to_binary(io_lib:format("~p", [X])).
 
+any_to_list(X) when is_binary(X) ->
+    binary_to_list(X);
+any_to_list(X) when is_list(X) ->
+    X;
+any_to_list(X) when is_integer(X) ->
+    integer_to_list(X);
+any_to_list(X) when is_float(X) ->
+    float_to_list(X);
+any_to_list(X) when is_atom(X) ->
+    atom_to_list(X);
+any_to_list(X) ->
+    lists:flatten(io_lib:format("~p", [X])).
+
 join(ListOfSomething, Separator) when is_list(ListOfSomething) ->
     lists:reverse(
       lists:foldl(fun(El, []) -> [El];
@@ -98,3 +113,60 @@ binstrip_light(<<$\t, Rest/binary>>, left) -> binstrip_light(Rest, left);
 binstrip_light(<<$\n, Rest/binary>>, left) -> binstrip_light(Rest, left);
 binstrip_light(<<$\r, Rest/binary>>, left) -> binstrip_light(Rest, left);
 binstrip_light(Binary, left) when is_binary(Binary) -> Binary.
+
+unify_proplists_keys(PList, binary) ->
+    lists:map(fun({Key, Value}) -> {any_to_binary(Key), Value} end, PList); 
+unify_proplists_keys(PList, list) ->
+    lists:map(fun({Key, Value}) -> {any_to_list(Key), Value} end, PList).
+
+memo_body(Arg, OriginalF, #{Arg := Value} = Cache) ->
+    {Value, OriginalF, fun(Arg) -> memo_body(Arg, OriginalF, Cache) end};
+memo_body(Arg, OriginalF, Cache) ->
+    NewValue = OriginalF(Arg),
+    {NewValue, OriginalF, maps:put(Arg, NewValue, Cache)}.
+
+memo(F) -> fun(Arg) -> memo_body(Arg, F, #{}) end.
+%
+%memo(F) ->
+%    Cache = ets:new(unnamed, [public, {read_concurrency, true}, {write_concurrency, true}]),
+%    fun
+%        (destruct) -> ets:delete(Cache);
+%        (ArgList) ->
+%            case ets:lookup(Cache, ArgList) of
+%                [{ArgList, Result}] -> Result;
+%                [] ->
+%                    Result = apply(F, ArgList),
+%                    ets:insert(Cache, {ArgList, Result}),
+%                    Result
+%            end
+%    end.
+%
+%memo_rr(F, MaxSize) ->
+%    Cache = ets:new(unnamed, [public, {read_concurrency, true}, {write_concurrency, true}]),
+%    fun
+%        (destruct) -> ets:delete(Cache);
+%        (ArgList) ->
+%            case ets:lookup(Cache, ArgList) of
+%                [{ArgList, Result}] -> Result;
+%                [] ->
+%                    case ets:info(Cache, size) of
+%                        N when N >= MaxSize ->
+%                            ets:
+%memo(F) ->
+%    Cache = ets:new(unnamed, [public, {read_concurrency, true}, {write_concurrency, true}]),
+%    fun
+%        (destruct) -> ets:delete(Cache);
+%        (ArgList) ->
+%            case ets:lookup(Cache, ArgList) of
+%                [{ArgList, Result}] -> Result;
+%                [] ->
+%                    Result = apply(F, ArgList),
+%                    ets:insert(Cache, {ArgList, Result}),
+%                    Result
+%            end
+%    end.
+%                    Result = apply(F, ArgList),
+%                    ets:insert(Cache, {ArgList, Result}),
+%                    Result
+%            end
+%    end.
