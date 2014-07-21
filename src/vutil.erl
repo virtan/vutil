@@ -127,6 +127,7 @@ unify_proplists_values(PList, list) ->
     lists:map(fun({Key, Value}) -> {Key, any_to_list(Value)} end, PList).
 
 recursive_make_dir([]) -> ok;
+recursive_make_dir(".") -> ok;
 recursive_make_dir(Dirname) ->
     case file:make_dir(Dirname) of
         ok -> ok;
