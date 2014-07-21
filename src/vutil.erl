@@ -12,7 +12,8 @@
          binstrip/2,
          binstrip_light/2,
          unify_proplists_keys/2,
-         unify_proplists_values/2
+         unify_proplists_values/2,
+         recursive_make_dir/1
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -124,6 +125,17 @@ unify_proplists_values(PList, binary) ->
     lists:map(fun({Key, Value}) -> {Key, any_to_binary(Value)} end, PList); 
 unify_proplists_values(PList, list) ->
     lists:map(fun({Key, Value}) -> {Key, any_to_list(Value)} end, PList).
+
+recursive_make_dir([]) -> ok;
+recursive_make_dir(Dirname) ->
+    case file:make_dir(Dirname) of
+        ok -> ok;
+        _ ->
+            recursive_make_dir(filename:dirname(Dirname)),
+            file:make_dir(Dirname),
+            ok
+    end.
+
 
 %memo_body(Arg, OriginalF, #{Arg := Value} = Cache) ->
 %    {Value, OriginalF, fun(Arg) -> memo_body(Arg, OriginalF, Cache) end};
