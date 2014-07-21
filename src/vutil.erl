@@ -13,7 +13,8 @@
          binstrip_light/2,
          unify_proplists_keys/2,
          unify_proplists_values/2,
-         recursive_make_dir/1
+         recursive_make_dir/1,
+         number_format/2
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -41,13 +42,21 @@ ceiling(X) ->
         _ -> T
     end.
 
-significant_round(0, _) -> 0;
+significant_round(Number, _) when Number == 0 -> 0.0;
 significant_round(Number, Digits) ->
     D = ceiling(math:log10(abs(Number))),
     P = Digits - round(D),
     M = math:pow(10, P),
     S = round(Number * M),
     S/M.
+
+number_format(Number, Digits) when is_list(Number) ->
+    case string:chr(Number, $.) of
+        0 ->
+            lists:duplicate(max(0, Digits - length(Number)), $0) ++ Number;
+        _ ->
+            Number ++ lists:duplicate(max(0, Digits + 1 - length(Number)), $0)
+    end.
 
 any_to_binary(X) when is_binary(X) ->
     X;
