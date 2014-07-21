@@ -11,7 +11,8 @@
          join/4,
          binstrip/2,
          binstrip_light/2,
-         unify_proplists_keys/2
+         unify_proplists_keys/2,
+         unify_proplists_values/2
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -118,6 +119,11 @@ unify_proplists_keys(PList, binary) ->
     lists:map(fun({Key, Value}) -> {any_to_binary(Key), Value} end, PList); 
 unify_proplists_keys(PList, list) ->
     lists:map(fun({Key, Value}) -> {any_to_list(Key), Value} end, PList).
+
+unify_proplists_values(PList, binary) ->
+    lists:map(fun({Key, Value}) -> {Key, any_to_binary(Value)} end, PList); 
+unify_proplists_values(PList, list) ->
+    lists:map(fun({Key, Value}) -> {Key, any_to_list(Value)} end, PList).
 
 %memo_body(Arg, OriginalF, #{Arg := Value} = Cache) ->
 %    {Value, OriginalF, fun(Arg) -> memo_body(Arg, OriginalF, Cache) end};
