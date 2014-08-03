@@ -13,7 +13,6 @@
          binstrip_light/2,
          unify_proplists_keys/2,
          unify_proplists_values/2,
-         recursive_make_dir/1,
          number_format/2,
          has_exported_function/2,
          has_exported_function/3
@@ -136,17 +135,6 @@ unify_proplists_values(PList, binary) ->
     lists:map(fun({Key, Value}) -> {Key, any_to_binary(Value)} end, PList); 
 unify_proplists_values(PList, list) ->
     lists:map(fun({Key, Value}) -> {Key, any_to_list(Value)} end, PList).
-
-recursive_make_dir([]) -> ok;
-recursive_make_dir(".") -> ok;
-recursive_make_dir(Dirname) ->
-    case file:make_dir(Dirname) of
-        ok -> ok;
-        _ ->
-            recursive_make_dir(filename:dirname(Dirname)),
-            file:make_dir(Dirname),
-            ok
-    end.
 
 has_exported_function(Module, Func) when is_atom(Module),
                                          (is_list(Func) orelse is_binary(Func)) ->
