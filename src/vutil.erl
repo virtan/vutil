@@ -14,7 +14,9 @@
          unify_proplists_keys/2,
          unify_proplists_values/2,
          recursive_make_dir/1,
-         number_format/2
+         number_format/2,
+         has_exported_function/2,
+         has_exported_function/3
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -24,7 +26,7 @@ calculate_delay_mcs({Mega, Sec, Micro} = _Past, {Mega1, Sec1, Micro1} = _Future)
 
 pmap(F, L) ->
     Parent = self(),
-    [receive {Pid, Result} -> Result end || Pid <- [spawn_link(fun() -> Parent ! {self(), F(X)} end) || X <- L]].
+    [receive {'vutil:pmap', Pid, Result} -> Result end || Pid <- [spawn_link(fun() -> Parent ! {'vutil:pmap', self(), catch F(X)} end) || X <- L]].
 
 floor(X) ->
     T = erlang:trunc(X),
@@ -145,6 +147,21 @@ recursive_make_dir(Dirname) ->
             file:make_dir(Dirname),
             ok
     end.
+
+has_exported_function(Module, Func) when is_atom(Module),
+                                         (is_list(Func) andalso is_binary(Func)) ->
+    has_exported_function(Module, Func, -1).
+
+has_exported_function(Module, Func, Arity) when is_atom(Module),
+                                                is_list(Func),
+                                                is_integer(Arity) ->
+    has_exported_function(Module, list_to_binary(Func));
+has_exported_function(Module, Func, Arity) when is_atom(Module),
+                                                is_binary(Func),
+                                                is_integer(Arity) ->
+    [exist || {F, A} <- Module:module_info(exports),
+              list_to_binary(atom_to_list(F)) == Func,
+              (A == Arity orelse Arity == -1)] =/= [].
 
 
 %memo_body(Arg, OriginalF, #{Arg := Value} = Cache) ->
