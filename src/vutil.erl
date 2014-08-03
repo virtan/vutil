@@ -149,7 +149,7 @@ recursive_make_dir(Dirname) ->
     end.
 
 has_exported_function(Module, Func) when is_atom(Module),
-                                         (is_list(Func) andalso is_binary(Func)) ->
+                                         (is_list(Func) orelse is_binary(Func)) ->
     has_exported_function(Module, Func, -1).
 
 has_exported_function(Module, Func, Arity) when is_atom(Module),
