@@ -15,7 +15,10 @@
          unify_proplists_values/2,
          number_format/2,
          has_exported_function/2,
-         has_exported_function/3
+         has_exported_function/3,
+         binary_to_beam/1,
+         load_beam/1,
+         unload_module/1
     ]).
 
 -compile({parse_transform, ct_expand}).
@@ -160,6 +163,21 @@ has_exported_function(Module, Func, Arity) when is_atom(Module),
 %
 %memo(F) -> fun(Arg) -> memo_body(Arg, F, #{}) end.
 %
+
+binary_to_beam(Binary) ->
+    {ok, Ts, _} = erl_scan:string(binary_to_list(Binary)),
+    {FsI, _} = lists:foldl(fun({dot,_} = Dot, {Parts, Remaining}) -> {[lists:reverse([Dot | Remaining]) | Parts], []};
+                              (Other, {Parts, Remaining}) -> {Parts, [Other | Remaining]} end,
+                           {[], []}, Ts),
+    compile:forms([begin {ok, PFs} = erl_parse:parse_form(F), PFs end || F <- lists:reverse(FsI)]). % {ok, Module, Binary}
+
+load_beam({ok, Module, Beam}) ->
+    {module, Module} = code:load_binary(Module, "nofile", Beam).
+
+unload_module(M) ->
+    code:delete(M),
+    code:purge(M).
+
 %memo(F) ->
 %    Cache = ets:new(unnamed, [public, {read_concurrency, true}, {write_concurrency, true}]),
 %    fun
