@@ -66,21 +66,21 @@ any_to_binary(X) when is_binary(X) ->
     X;
 any_to_binary(X) when is_list(X) ->
     try
-        list_to_binary(X)
+        unicode:characters_to_binary(X)
     catch
-        _:_ -> list_to_binary(io_lib:format("~p", [X]))
+        _:_ -> unicode:characters_to_binary(io_lib:format("~p", [X]))
     end;
 any_to_binary(X) when is_integer(X) ->
-    list_to_binary(integer_to_list(X));
+    unicode:characters_to_binary(integer_to_list(X));
 any_to_binary(X) when is_float(X) ->
-    list_to_binary(float_to_list(X));
+    unicode:characters_to_binary(float_to_list(X));
 any_to_binary(X) when is_atom(X) ->
-    list_to_binary(atom_to_list(X));
+    unicode:characters_to_binary(atom_to_list(X));
 any_to_binary(X) ->
-    list_to_binary(io_lib:format("~p", [X])).
+    unicode:characters_to_binary(io_lib:format("~p", [X])).
 
 any_to_list(X) when is_binary(X) ->
-    binary_to_list(X);
+    unicode:characters_to_list(X);
 any_to_list(X) when is_list(X) ->
     X;
 any_to_list(X) when is_integer(X) ->
