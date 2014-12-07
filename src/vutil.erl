@@ -18,8 +18,12 @@
          has_exported_function/3,
          binary_to_beam/1,
          load_beam/1,
-         unload_module/1
+         unload_module/1,
+         run_wait/2,
+         run_wait/3
     ]).
+
+-include_lib("eunit/include/eunit.hrl").
 
 -compile({parse_transform, ct_expand}).
 
@@ -177,6 +181,31 @@ load_beam({ok, Module, Beam}) ->
 unload_module(M) ->
     code:delete(M),
     code:purge(M).
+
+run_wait(Timeout, F) -> run_wait(Timeout, 0, F).
+run_wait(Timeout, SleepInBetween, F) ->
+    erlang:send_after(Timeout, self(), run_wait_timeout),
+    erlang:send_after(0, self(), run_wait_try_again),
+    CyclerF = fun(CyclerF) ->
+        receive
+            run_wait_timeout ->
+                timeout;
+            run_wait_try_again ->
+                case F() of
+                    wait ->
+                        erlang:send_after(SleepInBetween, self(), run_wait_try_again),
+                        CyclerF(CyclerF);
+                    Other ->
+                        Other
+                end
+        end
+              end,
+    CyclerF(CyclerF).
+
+run_wait_1_test() ->
+    timeout = run_wait(10, fun() -> timeout end),
+    ag = run_wait(10, fun() -> case put(ag, ag) of undefined -> wait; ag -> ag end end).
+
 
 %memo(F) ->
 %    Cache = ets:new(unnamed, [public, {read_concurrency, true}, {write_concurrency, true}]),
