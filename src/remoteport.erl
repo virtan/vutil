@@ -35,6 +35,9 @@ port_loop_2(Caller, Port) ->
         {Port, closed} ->
             Caller ! {self(), closed},
             ok;
+        {Port, {exit_status, Status}} ->
+            Caller ! {self(), {exit_status, Status}},
+            ok;
         {'EXIT', Port, Reason} ->
             Caller ! {'EXIT', self(), Reason},
             ok;
