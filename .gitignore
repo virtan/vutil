@@ -2,3 +2,5 @@ rebar
 ebin/
 priv/
 c_src/*.o
+deps/
+.eunit/
