@@ -21,7 +21,7 @@
 %%     {test, {gensrv, start_link, [#gensrv{
 %%                                     register = {local, ?MODULE},
 %%                                     init = fun(_) -> erlang:send_after(5000, self(), timeout) end,
-%%                                     handle_info = fun(timeout, _, _) ->
+%%                                     handle_info = fun(timeout, _) ->
 %%                                                           io:format("got timeout~n", []),
 %%                                                           erlang:send_after(5000, self(), timeout)
 %%                                                   end,
