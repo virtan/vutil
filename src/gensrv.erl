@@ -17,6 +17,7 @@
 -include("gensrv.hrl").
 
 %% Usage
+%% -include_lib("vutil/include/gensrv.hrl").
 %% child_spec() ->
 %%     {test, {gensrv, start_link, [#gensrv{
 %%                                     register = {local, ?MODULE},
