@@ -238,7 +238,7 @@ top_extract_stacktrace(_Pid, [{M, F, A, [{file, Fl}, {line, Ln}]} | _]) ->
     {M, M, F, A, Fl, Ln}.
 
 top_print(Top) ->
-    io:format("Messages\tReductions\tPid\tRealModule\tModule\tFunction\tArgs\tFile\tLine~n", []),
+    io:format("~nMsgs\tReds\tPid\tRealM\tM\tF\tArgs\tFile\tLine~n", []),
     top_print_1(Top).
 
 top_print_1([]) -> done;
