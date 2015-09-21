@@ -228,7 +228,7 @@ top_extract_stacktrace(Pid, [{gen_server, F, A, [{file, Fl}, {line, Ln}]} | _]) 
     RealModule = case erlang:process_info(Pid, dictionary) of
         {dictionary, D} ->
             case proplists:get('$initial_call', D) of
-                {M1, F1, A1} -> M1;
+                {M1, _F1, _A1} -> M1;
                 _ -> gen_server
             end;
         _ -> gen_server
