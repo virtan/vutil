@@ -20,7 +20,8 @@
          load_beam/1,
          unload_module/1,
          run_wait/2,
-         run_wait/3
+         run_wait/3,
+         top/0
     ]).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -205,6 +206,45 @@ run_wait(Timeout, SleepInBetween, F) ->
 run_wait_1_test() ->
     timeout = run_wait(10, fun() -> timeout end),
     ag = run_wait(10, fun() -> case put(ag, ag) of undefined -> wait; ag -> ag end end).
+
+top() ->
+    spawn(fun top_internal/0).
+
+top_internal() ->
+    erlang:send_after(1000, self(), print),
+    Pids = [{P, erlang:process_info(P, message_queue_len),
+             erlang:process_info(P, reductions), erlang:process_info(P, current_stacktrace)}
+            || P <- erlang:processes(), erlang:process_info(P, status) == {status, running}],
+    Pids2 = lists:filtermap(fun({P, {message_queue_len, MQL}, {reductions, R}, {current_stacktrace, S}}) ->
+                                    {true, {MQL, R, P, top_extract_stacktrace(P, S)}};
+                               (_) -> false
+                            end, Pids),
+    Sorted = lists:sort(Pids2),
+    top_print(Sorted),
+    receive print -> ok end,
+    top_internal().
+
+top_extract_stacktrace(Pid, [{gen_server, F, A, [{file, Fl}, {line, Ln}]} | _]) ->
+    RealModule = case erlang:process_info(Pid, dictionary) of
+        {dictionary, D} ->
+            case proplists:get('$initial_call', D) of
+                {M1, F1, A1} -> M1;
+                _ -> gen_server
+            end;
+        _ -> gen_server
+    end,
+    {RealModule, gen_server, F, A, Fl, Ln};
+top_extract_stacktrace(_Pid, [{M, F, A, [{file, Fl}, {line, Ln}]} | _]) ->
+    {M, M, F, A, Fl, Ln}.
+
+top_print(Top) ->
+    io:format("Messages\tReductions\tPid\tRealModule\tModule\tFunction\tArgs\tFile\tLine~n", []),
+    top_print_1(Top).
+
+top_print_1([]) -> done;
+top_print_1([{MQL, R, P, {RM, M, F, A, Fl, Ln}} | Other]) ->
+    io:format("~p\t~p\t~p\t~p\t~p\t~p\t~p\t~p\t~p~n", [MQL, R, P, RM, M, F, A, Fl, Ln]),
+    top_print_1(Other).
 
 
 %memo(F) ->
