@@ -238,13 +238,13 @@ top_extract_stacktrace(_Pid, [{M, F, A, [{file, Fl}, {line, Ln}]} | _]) ->
     {M, M, F, A, Fl, Ln}.
 
 top_print(Top) ->
-    io:format("~nMsgs\tReds\tPid\tRealM\tM\tF\tArgs\tFile\tLine~n", []),
+    io:format("~nMsgs\tReds\tPid\tRealM\tM:F/Args\tFile:Line~n", []),
     top_print_1(Top, 10).
 
 top_print_1([], _) -> done;
 top_print_1(_, 0) -> done;
 top_print_1([{MQL, R, P, {RM, M, F, A, Fl, Ln}} | Other], N) ->
-    io:format("~p\t~p\t~p\t~p\t~p\t~p\t~p\t~p\t~p~n", [MQL, R, P, RM, M, F, A, Fl, Ln]),
+    io:format("~p\t~p\t~p\t~p\t~p:~p/~p\t~p:~p~n", [MQL, R, P, RM, M, F, A, Fl, Ln]),
     top_print_1(Other, N - 1).
 
 
