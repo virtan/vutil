@@ -208,7 +208,7 @@ run_wait_1_test() ->
     ag = run_wait(10, fun() -> case put(ag, ag) of undefined -> wait; ag -> ag end end).
 
 top() ->
-    spawn(fun top_internal/0).
+    spawn(fun() -> top_internal() end).
 
 top_internal() ->
     erlang:send_after(1000, self(), print),
