@@ -219,7 +219,7 @@ top_internal() ->
                                     {true, {MQL, R, P, top_extract_stacktrace(P, S)}};
                                (_) -> false
                             end, Pids),
-    Sorted = lists:sort(Pids2),
+    Sorted = lists:reverse(lists:sort(Pids2)),
     top_print(Sorted),
     receive print -> ok end,
     top_internal().
