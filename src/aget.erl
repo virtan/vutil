@@ -98,10 +98,14 @@ handle_cast({insert, ObjectOrObjects}, State = #state{cur_map = CurMap}) ->
 handle_cast({insert_new, ObjectOrObjects}, State = #state{cur_map = CurMap}) ->
     ets:insert_new(CurMap, ObjectOrObjects),
     {noreply, State};
-handle_cast({UpdateOrUpdateRecent, GetF, Key, UpdateF, Default},
+handle_cast({UpdateOrUpdateRecent, Key, UpdateF, Default},
             State = #state{cur_map = CurMap, prev_map = PrevMap})
   when UpdateOrUpdateRecent == update orelse UpdateOrUpdateRecent == update_recent ->
-    case GetF(CurMap, PrevMap, Key, dont_move) of
+    Res = case UpdateOrUpdateRecent of
+              update -> get_move(CurMap, PrevMap, Key, dont_move);
+              update_recent -> get_recent(CurMap, Key)
+          end,
+    case Res of
         [] -> ets:insert_new(CurMap, {Key, Default});
         [SingleOldValue] -> ets:insert(CurMap, {Key, UpdateF(SingleOldValue)});
         [_|_] = MultipleOldValues -> ets:insert(CurMap, {Key, UpdateF(MultipleOldValues)})
@@ -179,13 +183,13 @@ update(Name, Key, UpdateF) ->
     update(Name, Key, UpdateF, undefined).
 
 update(Name, Key, UpdateF, Default) ->
-    gen_server:cast(Name, {update, get_move, Key, UpdateF, Default}).
+    gen_server:cast(Name, {update, Key, UpdateF, Default}).
 
 update_recent(Name, Key, UpdateF) ->
     update_recent(Name, Key, UpdateF, undefined).
 
 update_recent(Name, Key, UpdateF, Default) ->
-    gen_server:cast(Name, {update_recent, get_recent, Key, UpdateF, Default}).
+    gen_server:cast(Name, {update_recent, Key, UpdateF, Default}).
 
 get_both(Name, Key) ->
     gen_server:call(Name, {get_both, Key}).
