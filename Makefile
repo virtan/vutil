@@ -134,7 +134,7 @@ update-makefile:
 $(REBAR): $(ERLC) $(GIT)
 	-mkdir subs
 	-rm -rf subs/rebar
-	git clone https://github.com/basho/rebar.git subs/rebar
+	git clone https://github.com/rebar/rebar.git subs/rebar
 	cd subs/rebar && ./bootstrap
 	cp subs/rebar/rebar $(REBAR)
 	rm -rf subs/rebar
