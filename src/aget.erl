@@ -107,8 +107,8 @@ handle_cast({UpdateOrUpdateRecent, Key, UpdateF, Default},
           end,
     case Res of
         [] -> ets:insert_new(CurMap, {Key, Default});
-        [SingleOldValue] -> ets:insert(CurMap, {Key, UpdateF(SingleOldValue)});
-        [_|_] = MultipleOldValues -> ets:insert(CurMap, {Key, UpdateF(MultipleOldValues)})
+        [SingleOldValue] -> ets:insert(CurMap, UpdateF(SingleOldValue));
+        [_|_] = MultipleOldValues -> ets:insert(CurMap, UpdateF(MultipleOldValues))
     end,
     {noreply, State};
 handle_cast(UnexpectedCast, State) ->
