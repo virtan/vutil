@@ -21,7 +21,8 @@
     update/4,
     update_recent/3,
     update_recent/4,
-    get_both/2
+    get_both/2,
+    iterate/1
 ]).
 
 -behaviour(gen_server).
@@ -59,6 +60,10 @@ set_interval(Name, NewInterval)
     andalso NewInterval > 0
 ->
     gen_server:call(Name, {set_interval, NewInterval}).
+
+-spec iterate(Name :: aget_name()) -> any().
+iterate(Name) when is_atom(Name) ->
+    Name ! lifecycle.
 
 %%% gen_server %%%
 -record(state, {cur_map, prev_map, timer, lifetime}).
