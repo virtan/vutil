@@ -1,13 +1,14 @@
 -module(aget_local).
 -export([
-    init/1,
-    terminate/1,
-    on_message/2,
-    lookup/2,
-    delete/2,
-    insert/2,
-    insert_new/2,
-    get/3
+         init/1,
+         terminate/1,
+         on_message/2,
+         lookup/2,
+         delete/2,
+         insert/2,
+         insert_new/2,
+         get/3,
+         current_ets/1
 ]).
 
 
@@ -104,6 +105,9 @@ get(AGetTable, Key, Default) ->
             Value
     end.
 
+-spec current_ets(#?MODULE{}) -> integer().
+current_ets(#?MODULE{cur_map = CurMap}) ->
+    CurMap.
 
 %% tests
 
