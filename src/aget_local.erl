@@ -8,7 +8,8 @@
          insert/2,
          insert_new/2,
          get/3,
-         current_ets/1
+         current_ets/1,
+         force_switch/1
 ]).
 
 
@@ -108,6 +109,11 @@ get(AGetTable, Key, Default) ->
 -spec current_ets(#?MODULE{}) -> integer().
 current_ets(#?MODULE{cur_map = CurMap}) ->
     CurMap.
+
+-spec force_switch(#?MODULE{}) -> #?MODULE{}.
+force_switch(#?MODULE{cur_map = CurMap, prev_map = PrevMap} = State) ->
+    ets:delete_all_objects(PrevMap),
+    State#?MODULE{cur_map = PrevMap, prev_map = CurMap}.
 
 %% tests
 
