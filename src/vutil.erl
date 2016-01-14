@@ -212,9 +212,9 @@ top() ->
 
 top_internal() ->
     erlang:send_after(1000, self(), print),
-    Pids = [{P, erlang:process_info(P, message_queue_len),
-             erlang:process_info(P, reductions), erlang:process_info(P, current_stacktrace)}
-            || P <- erlang:processes(), erlang:process_info(P, status) == {status, running}],
+    Pids = [{P, catch erlang:process_info(P, message_queue_len),
+             catch erlang:process_info(P, reductions), catch erlang:process_info(P, current_stacktrace)}
+            || P <- erlang:processes(), catch erlang:process_info(P, status) == {status, running}],
     Pids2 = lists:filtermap(fun({P, {message_queue_len, MQL}, {reductions, R}, {current_stacktrace, S}}) ->
                                     {true, {MQL, R, P, top_extract_stacktrace(P, S)}};
                                (_) -> false
@@ -225,7 +225,7 @@ top_internal() ->
     top_internal().
 
 top_extract_stacktrace(Pid, [{gen_server, F, A, [{file, Fl}, {line, Ln}]} | _]) ->
-    RealModule = case erlang:process_info(Pid, dictionary) of
+    RealModule = case catch erlang:process_info(Pid, dictionary) of
         {dictionary, D} when is_list(D) ->
             case proplists:get_value('$initial_call', D) of
                 {M1, _F1, _A1} -> M1;
